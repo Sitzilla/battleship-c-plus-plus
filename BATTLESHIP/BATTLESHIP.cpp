@@ -4,16 +4,22 @@
 #include "stdafx.h"
 #include "board.h"
 #include "ship.h"
+#include "patrolboat.h"
+#include "frigate.h"
+#include "submarine.h"
 #include "battleship.h"
+#include "aircraftcarrier.h"
 #include <iostream>
 #include <string>
 #include <array>
 
+
 using namespace std;
 
 int** parseInputCoordinates(int &arraySize, string coordinateOne, string coordinateTwo);
-void getUserCoordiantes(string &coordinateOne, string &coordinateTwo);
-bool placeShipOnBoard(Board &gameboard, int** shipCoordinates, int arraySize);
+void getUserCoordiantes(string &coordinateOne, string &coordinateTwo, Ship currentShip);
+bool placeShipOnBoard(Board &__1Waterboard, int** shipCoordinates, int arraySize);
+int stringToInt(string str);
 
 Board::Board() {
 
@@ -27,57 +33,103 @@ Board::Board() {
 }
 
 
-Ship::Ship() {
-
+Ship::Ship(string pName, int pSize) {
+	name = pName;
+	size = pSize;
 }
 
-Battleship::Battleship() : Ship() {
-
-}
-
-
-
-void startGame(Board &gameboard) {
+// main game logic
+void startGame(Board &__1Waterboard, Board &__2Waterboard, Board &__1Targetboard, Board &__2Targetboard) {
 	string coordinateOne;
 	string coordinateTwo;
-	Battleship my_bship;
+	Ship __1PatrolBoat("Patrol Boat", 2);
+	Ship __1Frigate("Frigate", 3);
+	Ship __1Submarine("Submarine", 3);
+	Ship __1Battleship("Battleship", 4);
+	Ship __1AircraftCarrier("Aircraft Carrier", 5);
+	Ship __1shipArray[5] = { __1PatrolBoat, __1Frigate, __1Submarine, __1Battleship, __1AircraftCarrier };
+	Ship __2PatrolBoat("Patrol Boat", 2);
+	Ship __2Frigate("Frigate", 3);
+	Ship __2Submarine("Submarine", 3);
+	Ship __2Battleship("Battleship", 4);
+	Ship __2AircraftCarrier("Aircraft Carrier", 5);
+	Ship __2shipArray[5] = { __1PatrolBoat, __1Frigate, __1Submarine, __1Battleship, __1AircraftCarrier };
 	bool success;
 
-	int arraySize = 0;
-	int** shipCoordinates = parseInputCoordinates(arraySize, "A2", "A6");
 
-	gameboard.drawBoard();
+	//for (int shipCount = 0; shipCount < 5; shipCount++) {
+	//	Ship currentShip = __1shipArray[shipCount];
+	//	getUserCoordiantes(coordinateOne, coordinateTwo, currentShip);
+
+	//	int arraySize = 0;
+	//	int** shipCoordinates = parseInputCoordinates(arraySize, coordinateOne, coordinateTwo);
+	//	success = placeShipOnBoard(__1Waterboard, shipCoordinates, arraySize);
+	//}
+
+	// CODE FOR TESTING OTHER SHIT
+		int arraySize = 0;
+		int** shipCoordinates = parseInputCoordinates(arraySize, "B3", "E3");
+		success = placeShipOnBoard(__1Waterboard, shipCoordinates, arraySize);
+
+		arraySize = 0;
+		shipCoordinates = parseInputCoordinates(arraySize, "F5", "F6");
+		success = placeShipOnBoard(__2Waterboard, shipCoordinates, arraySize);
+		
+	__1Waterboard.drawBoard();
+//	__2Waterboard.drawBoard();
 	exit(0);
 
-	my_bship.setPosition(shipCoordinates);
 
-	success = placeShipOnBoard(gameboard, shipCoordinates, arraySize);
 
-	exit(0);
 
+
+
+/*
 	for (int i = 0; i < arraySize; i++) {
 		cout << "Coordinate " << i << ": " << shipCoordinates[i][0] << ", " << shipCoordinates[i][1] << ".\n";
+	}*/
+
+}
+
+void launchMissle(Board &Waterboard, Board Targetboard) {
+	string fireCoordinates;
+	string row;
+	string col;
+
+	cout << "Please select coordinates to fire.\n";
+	//NEED TO ADD CHECK HERE
+	cin >> fireCoordinates;
+
+
+	row = fireCoordinates.substr(0, 1);
+	col = fireCoordinates.substr(1, 2);
+
+	int row1 = stringToInt(row);  //NEED TO FIGURE OUT ASCII CONVERSIONS
+	int col1 = atoi(col.c_str()) - 1; // subtract one because arrays count from 0
+
+	if (Waterboard.hasShip(row1, col1)) {
+		Waterboard.setStatus(row1, col1, 3);
+	}
+	else {
+		Waterboard.setStatus(row1, col1, 2);
 	}
 
-	getUserCoordiantes(coordinateOne, coordinateTwo);
-
-	cout << "Your Battleship is at coordinates " << coordinateOne << ", " << coordinateTwo << ".\n";
 }
 
 
 // takes the coordinates for a ship and places it on the board
 // does appropriate checks for other ships
-bool placeShipOnBoard(Board &gameboard, int** shipCoordinates, int arraySize) {
+bool placeShipOnBoard(Board &__1Waterboard, int** shipCoordinates, int arraySize) {
 
 	for (int i = 0; i < arraySize; i++) {
-		if (gameboard.hasShip(shipCoordinates[i][0], shipCoordinates[i][1]) == true) {
+		if (__1Waterboard.hasShip(shipCoordinates[i][0], shipCoordinates[i][1]) == true) {
 			return false;
 		}
 	}
 	//NEED TO SET OUT OF BOUNDS CHECK HERE (OR EARLIER)
 
 	for (int i = 0; i < arraySize; i++) {
-		gameboard.setShip(shipCoordinates[i][0], shipCoordinates[i][1]);
+		__1Waterboard.setShip(shipCoordinates[i][0], shipCoordinates[i][1]);
 	}
 
 	return true;
@@ -92,7 +144,7 @@ int** parseInputCoordinates(int &arraySize, string coordinateOne, string coordin
 	row = coordinateOne.substr(0, 1);
 	col = coordinateOne.substr(1, 2);
 
-	int row1 = atoi(row.c_str());
+	int row1 = stringToInt(row);  //NEED TO FIGURE OUT ASCII CONVERSIONS
 	int col1 = atoi(col.c_str()) - 1; // subtract one because arrays count from 0
 
 	// array of first set of coordinates
@@ -104,7 +156,7 @@ int** parseInputCoordinates(int &arraySize, string coordinateOne, string coordin
 	row = coordinateTwo.substr(0, 1);
 	col = coordinateTwo.substr(1, 2);
 
-	int row2 = atoi(row.c_str());
+	int row2 = stringToInt(row);
 	int col2 = atoi(col.c_str()) - 1; // subtract one because arrays count from 0
 
 	// array of second set of coordinates
@@ -162,27 +214,61 @@ int** parseInputCoordinates(int &arraySize, string coordinateOne, string coordin
 	//delete[]array;
 }
 
-
 // Method to get user coordinates for ships
-void getUserCoordiantes(string &coordinateOne, string &coordinateTwo) {
+void getUserCoordiantes(string &coordinateOne, string &coordinateTwo, Ship currentShip) {
 	// NEED TO MAKE THIS NON-SHIP SPECIFIC
-	cout << "Time to set your Battleship!\n";
-	cout << "The Battleship is 4 spaces long.  Please enter in first end coordinate (ex. A6).\n";
+	cout << "Time to set your " << currentShip.getName() << "!\n";
+	cout << "The " << currentShip.getName() << " is " << currentShip.getSize() << " spaces long. Please enter in first end coordinate(ex.A6).\n";
 	//NEED TO ADD CHECK HERE
 	cin >> coordinateOne;
 	cout << "You entered " << coordinateOne << ". Please enter in the second end coordinate (ex. A9).\n ";
 	//NEED TO ADD CHECK HERE
 	cin >> coordinateTwo;
-	cout << "Your Battleship is at coordinates " << coordinateOne << ", " << coordinateTwo << ".\n";
+	cout << "Your " << currentShip.getName() << " is at coordinates " << coordinateOne << ", " << coordinateTwo << ".\n";
 }
 
 int main()
 {
-	Board gameboard;
-//	Battleship my_bship;
+	Board __1Waterboard;
+	Board __2Waterboard;
+	Board __1Targetboard;
+	Board __2Targetboard;
 
-	startGame(gameboard);
+	startGame(__1Waterboard, __2Waterboard, __1Targetboard, __2Targetboard);
 
 	return 0;
 }
 
+int stringToInt(string str) {
+	if (str == "A") {
+		return 0;
+	}
+	else if (str == "B") {
+		return 1;
+	}
+	else if (str == "C") {
+		return 2;
+	}
+	else if (str == "D") {
+		return 3;
+	}
+	else if (str == "E") {
+		return 4;
+	}
+	else if (str == "F") {
+		return 5;
+	}
+	else if (str == "G") {
+		return 6;
+	}
+	else if (str == "H") {
+		return 7;
+	}
+	else if (str == "I") {
+		return 8;
+	}
+	else if (str == "J") {
+		return 9;
+	}
+	return 0;
+}

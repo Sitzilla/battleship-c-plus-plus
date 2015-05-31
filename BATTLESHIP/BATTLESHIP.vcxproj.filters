@@ -33,6 +33,18 @@
     <ClInclude Include="battleship.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="patrolboat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="frigate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="submarine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="aircraftcarrier.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
