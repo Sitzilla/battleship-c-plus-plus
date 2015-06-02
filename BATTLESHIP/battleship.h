@@ -6,7 +6,6 @@
 #include "ship.h"
 #include <iostream>
 #include <string>
-#include <windows.h>
 
 #define MAX_COORDINATES_ROW 5
 #define MAX_COORDINATES_COL 2
