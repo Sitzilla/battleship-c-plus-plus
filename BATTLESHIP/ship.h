@@ -29,12 +29,15 @@ class Ship {
 			return false;
 		}
 
-		void hit() {
+		// Simulates a ship being hit. Returns true if ship is sunk
+		bool hit() {
 			life--;
 			if (life == 0) {
 				cout << "***You sunk the enemy's " << name << "!!!\n";
 				sunk = true;
+				return true;
 			}
+			return false;
 		}
 
 		bool isSunk() {
