@@ -6,7 +6,6 @@
 #include "ship.h"
 #include <iostream>
 #include <string>
-#include <array>
 #include <windows.h>
 
 #define MAX_COORDINATES_ROW 5
@@ -16,8 +15,8 @@ using namespace std;
 
 bool parseInputCoordinates(int(&shipCoordinates)[MAX_COORDINATES_ROW][MAX_COORDINATES_COL], int &arraySize, int shipSize, string coordinateOne, string coordinateTwo);
 void getUserCoordiantes(string &coordinateOne, string &coordinateTwo, Ship currentShip);
-void placeShipOnBoard(Board &__1Waterboard, int(&shipCoordinates)[MAX_COORDINATES_ROW][MAX_COORDINATES_COL], int arraySize);
-bool launchMissile(Board &Waterboard, Board &Targetboard, Ship shipArray[5]);
+void placeShipOnBoard(Board &waterboard, int(&shipCoordinates)[MAX_COORDINATES_ROW][MAX_COORDINATES_COL], int arraySize);
+bool launchMissile(Board &ownWaterboard, Board &enemyWaterboard, Board &Targetboard, Ship shipArray[5], string player);
 void clearScreen();
 bool checkVictory(Ship shipArray[5]);
 int upperOrLower(string letter);
@@ -26,6 +25,8 @@ bool withinBounds(int value);
 bool acceptableInput(string row, int col);
 void fillInCoordinates(int(&shipCoordinates)[MAX_COORDINATES_ROW][MAX_COORDINATES_COL], int &arraySize, int fixedAxis, int changeAxis1, int changeAxis2);
 bool shipAlreadyExists(Board &__1Waterboard, int(&shipCoordinates)[MAX_COORDINATES_ROW][MAX_COORDINATES_COL], int arraySize);
+void playerShipPlacement(Board &waterboard, int(&shipCoordinates)[MAX_COORDINATES_ROW][MAX_COORDINATES_COL], Ship shipArray[5], string player);
+bool takeTurnsFiring(Board &ownWaterboard, Board &enemyWaterboard, Board &targetboard, Ship enemyShips[5], string player);
 
 Board::Board() {
 	// Initialize the board as a 10x10 multi-dimensional array
@@ -36,17 +37,14 @@ Board::Board() {
 	}
 }
 
-
 Ship::Ship(string pName, int pSize) {
 	name = pName;
 	size = pSize;
 	life = pSize;
 }
 
-// main game logic
+// Main game logic
 void startGame(Board &__1Waterboard, Board &__2Waterboard, Board &__1Targetboard, Board &__2Targetboard) {
-	string coordinateOne;
-	string coordinateTwo;
 	Ship __1PatrolBoat("Patrol Boat", 2);
 	Ship __1Frigate("Frigate", 3);
 	Ship __1Submarine("Submarine", 3);
@@ -60,24 +58,70 @@ void startGame(Board &__1Waterboard, Board &__2Waterboard, Board &__1Targetboard
 	Ship __2AircraftCarrier("Aircraft Carrier", 5);
 	Ship __2shipArray[5] = { __2PatrolBoat, __2Frigate, __2Submarine, __2Battleship, __2AircraftCarrier };
 	bool gameOver = false;
-	int shipCoordinates[MAX_COORDINATES_ROW][MAX_COORDINATES_COL];
-	memset(shipCoordinates, -1, sizeof(shipCoordinates)); //NEED TO SET IN ONE LINE
+	int shipCoordinates[MAX_COORDINATES_ROW][MAX_COORDINATES_COL] = {{-1}};
 
 
-	// Ship Placement for Player one (refactor)
-	cout << "Welcome to Battleship Player one!  Time to choose ship placement\n";
-	for (int shipCount = 0; shipCount < 2; shipCount++) { // MAKE THIS 5
+	// Ship Placement for Player one
+	playerShipPlacement(__1Waterboard, shipCoordinates, __1shipArray, "one");
+	// Ship Placement for Player two
+	playerShipPlacement(__2Waterboard, shipCoordinates, __2shipArray, "two");
+
+
+	// Game flow logic
+	while (gameOver == false) {
+		// Player one's turn
+		gameOver = takeTurnsFiring(__1Waterboard, __2Waterboard, __1Targetboard, __2shipArray, "one");
+		if (gameOver == true) {
+			break;
+		}
+
+		// Player two's turn
+		gameOver = takeTurnsFiring(__2Waterboard, __1Waterboard, __2Targetboard, __1shipArray, "two");
+	}
+}
+
+bool takeTurnsFiring(Board &ownWaterboard, Board &enemyWaterboard, Board &targetboard, Ship enemyShips[5], string player) {
+	bool fireSucess = false;
+	bool gameOver = false;
+
+	while (!fireSucess) {
+		fireSucess = launchMissile(ownWaterboard, enemyWaterboard, targetboard, enemyShips, player);
+
+		if (fireSucess == false) {
+			cout << "***INCORRECT COORDINATES! Please enter in a legal coordinate that you have not already fired at.\n";
+		}
+	}
+
+	gameOver = checkVictory(enemyShips);
+	Sleep(1000);
+	clearScreen();
+
+	if (gameOver == true) {
+		cout << "Play " << player << " has won!!!!!";
+		Sleep(1000);
+		return true;
+	}
+	return false;
+}
+
+// Ship Placement for Players at the beginning of the game
+void playerShipPlacement(Board &waterboard, int(&shipCoordinates)[MAX_COORDINATES_ROW][MAX_COORDINATES_COL], Ship shipArray[5], string player) {
+	string coordinateOne;
+	string coordinateTwo;
+
+	clearScreen();
+	cout << "Welcome to Battleship Player " << player << "!  Time to choose ship placement\n";
+	for (int shipCount = 0; shipCount < 5; shipCount++) {
 		bool acceptableInputBounds = false; // boolean to confirm user input is in bounds
 		bool acceptableInputBlocked = false; // boolean to confirm user input is in empty square
 		int arraySize;
-
 		while (acceptableInputBounds == false || acceptableInputBlocked == false) {
 			arraySize = 0;
-			__1Waterboard.drawBoard();
-			Ship currentShip = __1shipArray[shipCount];
+			waterboard.drawBoard();
+			Ship currentShip = shipArray[shipCount];
 			getUserCoordiantes(coordinateOne, coordinateTwo, currentShip);
 			acceptableInputBounds = parseInputCoordinates(shipCoordinates, arraySize, currentShip.getSize(), coordinateOne, coordinateTwo);
-			acceptableInputBlocked = shipAlreadyExists(__1Waterboard, shipCoordinates, arraySize);
+			acceptableInputBlocked = shipAlreadyExists(waterboard, shipCoordinates, arraySize);
 
 			if (acceptableInputBounds == false || acceptableInputBlocked == false) {
 				cout << "***INCORRECT INPUTS! Please enter in legal coortinates (" << currentShip.getSize() << " spaces long)\n";
@@ -86,87 +130,15 @@ void startGame(Board &__1Waterboard, Board &__2Waterboard, Board &__1Targetboard
 			}
 			else {
 				cout << "Your " << currentShip.getName() << " is at coordinates " << coordinateOne << ", " << coordinateTwo << ".\n";
-			}
-		}
-		placeShipOnBoard(__1Waterboard, shipCoordinates, arraySize);
-		__1shipArray[shipCount].setPosition(shipCoordinates);
-		memset(shipCoordinates, -1, sizeof(shipCoordinates));
-	}
-
-	// Ship Placement for Player two (refactor)
-	clearScreen();
-	cout << "Welcome to Battleship Player two!  Time to choose ship placement\n";
-	for (int shipCount = 0; shipCount < 2; shipCount++) { // MAKE THIS 5
-		bool acceptableInputBounds = false; // boolean to confirm user input is in bounds
-		bool acceptableInputBlocked = false; // boolean to confirm user input is in empty square
-		int arraySize = 0;
-
-		while (acceptableInputBounds == false || acceptableInputBlocked == false) {
-			arraySize = 0;
-			__2Waterboard.drawBoard();
-			Ship currentShip = __2shipArray[shipCount];
-			getUserCoordiantes(coordinateOne, coordinateTwo, currentShip);
-			acceptableInputBounds = parseInputCoordinates(shipCoordinates, arraySize, currentShip.getSize(), coordinateOne, coordinateTwo);
-			acceptableInputBlocked = shipAlreadyExists(__2Waterboard, shipCoordinates, arraySize);
-
-			if (acceptableInputBounds == false || acceptableInputBlocked == false) {
-				cout << "***INCORRECT INPUTS! Please enter in legal coortinates (" << currentShip.getSize() << " spaces long)\n";
-			}
-			else {
-				cout << "Your " << currentShip.getName() << " is at coordinates " << coordinateOne << ", " << coordinateTwo << ".\n";
 				Sleep(1000);
+				clearScreen();
 			}
 		}
-		placeShipOnBoard(__2Waterboard, shipCoordinates, arraySize);
-		__2shipArray[shipCount].setPosition(shipCoordinates);
+		placeShipOnBoard(waterboard, shipCoordinates, arraySize);
+		shipArray[shipCount].setPosition(shipCoordinates);
 		memset(shipCoordinates, -1, sizeof(shipCoordinates));
 	}
 
-	// Game flow logix
-	while (gameOver == false) {
-		bool fireSucess = false;
-
-		while (!fireSucess) {
-			cout << "     Player One - Your Ships\n";
-			__1Waterboard.drawBoard();
-			cout << "\n\n\n";
-			fireSucess = launchMissile(__2Waterboard, __1Targetboard, __2shipArray);
-
-			if (fireSucess == false) {
-				cout << "***INCORRECT COORDINATES! Please enter in a legal coordinate that you have not already fired at.\n";
-			}
-		}
-
-		gameOver = checkVictory(__2shipArray);
-		Sleep(1000);
-		clearScreen();
-
-		if (gameOver == true) {
-			cout << "Play One has won!!!!!";
-			return;
-		}
-
-		fireSucess = false;
-		while (!fireSucess) {
-			cout << "     Player Two - Your Ships\n";
-			__2Waterboard.drawBoard();
-			cout << "\n\n\n";
-			fireSucess = launchMissile(__1Waterboard, __2Targetboard, __1shipArray);
-
-			if (fireSucess == false) {
-				cout << "***INCORRECT COORDINATES! Please enter in a legal coordinate that you have not already fired at.\n";
-			}
-		}
-
-		gameOver = checkVictory(__1shipArray);
-		Sleep(1000);
-		clearScreen();
-
-		if (gameOver == true) {
-			cout << "Play Two has won!!!!!";
-			return;
-		}
-	}
 }
 
 bool checkVictory(Ship shipArray[5]) {
@@ -174,7 +146,7 @@ bool checkVictory(Ship shipArray[5]) {
 	for (int i = 0; i < 5; i++) {
 		if (shipArray[i].isSunk() == true) {
 			counter++;
-			if (counter == 2){
+			if (counter == 5){
 				return true;
 			}
 		}
@@ -182,50 +154,57 @@ bool checkVictory(Ship shipArray[5]) {
 	return false;
 }
 
-bool launchMissile(Board &Waterboard, Board &Targetboard, Ship shipArray[5]) {
+bool launchMissile(Board &ownWaterboard, Board &enemyWaterboard, Board &Targetboard, Ship shipArray[5], string player) {
 	string fireCoordinates;
 	int row;
 	int col;
 	bool boundsCheck = false;
 
-	cout << "      Please select coordinates to fire.\n";
+	cout << "      ***Enter target coordinates.\n";
+	cout << "      Ships remaining in enemy fleet: " << enemyWaterboard.getShipsRemaining() << "\n\n";
 	Targetboard.drawBoard();
-	//NEED TO ADD CHECK HERE
+	cout << "\n\n   ***Allied fleet configuration (Player " << player << ").\n";
+	cout << "              Allied ships remaining: " << ownWaterboard.getShipsRemaining() << "\n\n";
+	ownWaterboard.drawBoard();
 	cin >> fireCoordinates;
 
 	// Checks the input for being in bounds and maps the letter input to its corresponding integer value
 	boundsCheck = mapInput(fireCoordinates, row, col);
-
 	if (boundsCheck == false) {
 		return false;
 	}
 
-
-	if (Waterboard.hasShip(row, col) && !Waterboard.alreadyFired(row, col)) {
-		Waterboard.setStatus(row, col, 3);
-		Targetboard.setStatus(row, col, 3);
+	// If a hit
+	if (enemyWaterboard.hasShip(row, col) && !enemyWaterboard.alreadyFired(row, col)) {
+		enemyWaterboard.setStatus(row, col, HIT);
+		Targetboard.setStatus(row, col, HIT);
 
 		for (int i = 0; i < 5; i++) {
 			if (shipArray[i].inPosition(row, col) == true) {
-				shipArray[i].hit();
+				bool shipSunk = false;
+				shipSunk = shipArray[i].hit();
 				cout << "HIT!!!\n";
+				if (shipSunk) {
+					enemyWaterboard.sunkEnemyShip();
+				}
 				return true;
 			}
 		}
 	}
-	else if (!Waterboard.hasShip(row, col) && !Waterboard.alreadyFired(row, col)) {
-		Waterboard.setStatus(row, col, 2);
-		Targetboard.setStatus(row, col, 2);
+	// If a miss
+	else if (!enemyWaterboard.hasShip(row, col) && !enemyWaterboard.alreadyFired(row, col)) {
+		enemyWaterboard.setStatus(row, col, MISS);
+		Targetboard.setStatus(row, col, MISS);
 		cout << "Miss\n";
 		return true;
 	}
 	return false;
 }
 
-// takes the coordinates for a ship and places it on the board
-void placeShipOnBoard(Board &__1Waterboard, int(&shipCoordinates)[MAX_COORDINATES_ROW][MAX_COORDINATES_COL], int arraySize) {
+// Takes the coordinates for a ship and places it on the board
+void placeShipOnBoard(Board &waterboard, int(&shipCoordinates)[MAX_COORDINATES_ROW][MAX_COORDINATES_COL], int arraySize) {
 	for (int i = 0; i < arraySize; i++) {
-		__1Waterboard.setShip(shipCoordinates[i][0], shipCoordinates[i][1]);
+		waterboard.setShip(shipCoordinates[i][0], shipCoordinates[i][1]);
 	}
 }
 
@@ -237,7 +216,6 @@ bool shipAlreadyExists(Board &__1Waterboard, int(&shipCoordinates)[MAX_COORDINAT
 			return false;
 		}
 	}
-
 	return true;
 }
 
@@ -250,41 +228,38 @@ bool parseInputCoordinates(int (&shipCoordinates) [MAX_COORDINATES_ROW][MAX_COOR
 
 	// Checks the input for being in bounds and maps the letter input to its corresponding integer value
 	boundsCheck = mapInput(coordinateOne, row1, col1);
-
 	if (boundsCheck == false) {
 		return false;
 	}
-
 	boundsCheck = mapInput(coordinateTwo, row2, col2);
-
 	if (boundsCheck == false) {
 		return false;
 	}
 
-	// array of first set of coordinates
+	// Array of first set of coordinates
 	shipCoordinates[0][0] = row1;
 	shipCoordinates[0][1] = col1;
 	arraySize++;
 
-	// array of second set of coordinates
+	// Array of second set of coordinates
 	shipCoordinates[1][0] = row2;
 	shipCoordinates[1][1] = col2;
 	arraySize++;
 
-	// if placing the ship horizontally
+	// If placing the ship horizontally
 	if (row1 == row2) {
 		fillInCoordinates(shipCoordinates, arraySize, row1, col1, col2);
 	}
-	// else placing the ship vertically
+	// Else placing the ship vertically
 	else if (col1 == col2) {
 		fillInCoordinates(shipCoordinates, arraySize, col1, row1, row2);
 	}
-	// return false if ship is not aligned either horizontally or vertically
+	// Return false if ship is not aligned either horizontally or vertically
 	else { 
 		return false;
 	}
 
-	// if the number of ship coordinates equals the size of the ship then the ship is within bounds
+	// If the number of ship coordinates equals the size of the ship then the ship is within bounds
 	if (shipSize == arraySize) {
 		return true;
 	}
@@ -292,7 +267,7 @@ bool parseInputCoordinates(int (&shipCoordinates) [MAX_COORDINATES_ROW][MAX_COOR
 	return false;
 }
 
-// fills in the coordinates between two endpoints
+// Fills in the coordinates between two endpoints
 void fillInCoordinates (int (&shipCoordinates) [MAX_COORDINATES_ROW][MAX_COORDINATES_COL], int &arraySize, int fixedAxis, int changeAxis1, int changeAxis2) {
 
 	// if changeAxis1 is larger than changeAxis2 then switch their values
@@ -315,8 +290,7 @@ void fillInCoordinates (int (&shipCoordinates) [MAX_COORDINATES_ROW][MAX_COORDIN
 	}
 }
 
-
-// takes user input and directly returns whether it is within bounds, and relative references to the return row/col
+// Takes user input and directly returns whether it is within bounds, and relative references to the return row/col
 bool mapInput(string inputCoordinates, int &returnRow, int &returnCol){
 	string row;
 	string col;
@@ -337,7 +311,7 @@ bool mapInput(string inputCoordinates, int &returnRow, int &returnCol){
 }
 
 
-//checks that coordinates are in bounds and correct
+// Checks that coordinates are in bounds and correct
 bool acceptableInput(string row, int col) {
 	// input was not a letter between 'A' and 'J'
 	if (upperOrLower(row) == 0) {
@@ -350,11 +324,12 @@ bool acceptableInput(string row, int col) {
 	return true;
 }
 
+// Confirm the user is within bounds of the board
 bool withinBounds(int value) {
-
 	return ((value >= 0) && (value <= 9));
 }
 
+// Method to help map an ASCII char to an int
 int upperOrLower(string letter) {
 	if (letter >= "a" && letter <= "j") {
 		return 97;
