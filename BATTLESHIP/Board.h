@@ -39,13 +39,18 @@ class Board {
 		void setStatus(int row, int col, int status) {
 			switch (status) {
 				case 0: board[row][col] = NO_GUESS_NO_SHIP;
+						break;
 				case 1: board[row][col] = NO_GUESS_SHIP;
+						break;
 				case 2: board[row][col] = MISS;
+						break;
 				case 3: board[row][col] = HIT;
+						break;
 			}
 		}
 
 	private:
+		//BRING THIS OUTSIDE OF BOARD!!!!
 		enum Status {
 			NO_GUESS_NO_SHIP,
 			NO_GUESS_SHIP,
@@ -59,12 +64,14 @@ class Board {
 				return "   ";
 			}
 			else if (content == NO_GUESS_SHIP) {
-				return "OOO";
+				return " O ";
 			}
 			else if (content == HIT) {
-				return "XXX";
+				return " X ";
 			}
-			return " - ";
+			else if (content == MISS) {
+				return " - ";
+			}
 		}
 
 };

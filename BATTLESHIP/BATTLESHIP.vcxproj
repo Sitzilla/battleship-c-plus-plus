@@ -79,14 +79,9 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="aircraftcarrier.h" />
-    <ClInclude Include="battleship.h" />
     <ClInclude Include="Board.h" />
-    <ClInclude Include="frigate.h" />
-    <ClInclude Include="patrolboat.h" />
     <ClInclude Include="ship.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="submarine.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
