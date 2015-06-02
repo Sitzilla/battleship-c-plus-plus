@@ -5,10 +5,18 @@
 #include <string>;
 using namespace std;
 
+enum Status {
+	NO_GUESS_NO_SHIP,
+	NO_GUESS_SHIP,
+	MISS,
+	HIT,
+};
+
 class Board {
 	public:
 
 		Board();
+
 		bool hasShip(int row, int col) {
 			if (board[row][col] == NO_GUESS_NO_SHIP) {
 				return false;
@@ -44,27 +52,20 @@ class Board {
 			}
 		}
 
-		void setStatus(int row, int col, int status) {
-			switch (status) {
-				case 0: board[row][col] = NO_GUESS_NO_SHIP;
-						break;
-				case 1: board[row][col] = NO_GUESS_SHIP;
-						break;
-				case 2: board[row][col] = MISS;
-						break;
-				case 3: board[row][col] = HIT;
-						break;
-			}
+		void setStatus(int row, int col, Status status) {
+			board[row][col] = status;
+		}
+
+		int getShipsRemaining() {
+			return shipsRemaining;
+		}
+
+		void sunkEnemyShip() {
+			shipsRemaining--;
 		}
 
 	private:
-		//BRING THIS OUTSIDE OF BOARD!!!!
-		enum Status {
-			NO_GUESS_NO_SHIP,
-			NO_GUESS_SHIP,
-			MISS,
-			HIT,
-		};
+		int shipsRemaining = 5;
 		Status board[10][10];
 
 		string squareArt(Status content) {
@@ -81,7 +82,6 @@ class Board {
 				return " - ";
 			}
 		}
-
 };
 
 #endif
