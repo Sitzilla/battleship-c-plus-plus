@@ -343,13 +343,10 @@ int upperOrLower(string letter) {
 
 // Method to get user coordinates for ships
 void getUserCoordiantes(string &coordinateOne, string &coordinateTwo, Ship currentShip) {
-	// NEED TO MAKE THIS NON-SHIP SPECIFIC
 	cout << "Time to set your " << currentShip.getName() << "!\n";
 	cout << "The " << currentShip.getName() << " is " << currentShip.getSize() << " spaces long. Please enter in first end coordinate(ex.A6).\n";
-	//NEED TO ADD CHECK HERE
 	cin >> coordinateOne;
 	cout << "You entered " << coordinateOne << ". Please enter in the second end coordinate (ex. A9).\n ";
-	//NEED TO ADD CHECK HERE
 	cin >> coordinateTwo;
 }
 
