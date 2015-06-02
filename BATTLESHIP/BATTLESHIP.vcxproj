@@ -79,6 +79,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="battleship.h" />
     <ClInclude Include="board.h" />
     <ClInclude Include="ship.h" />
     <ClInclude Include="stdafx.h" />
@@ -86,6 +87,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="battleship.cpp" />
+    <ClCompile Include="board.cpp" />
+    <ClCompile Include="ship.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
