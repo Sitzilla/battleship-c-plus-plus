@@ -15,6 +15,14 @@ class Board {
 			}
 			return true;
 		}
+
+		bool alreadyFired(int row, int col) {
+			if (board[row][col] == HIT || board[row][col] == MISS) {
+				return true;
+			}
+			return false;
+		}
+
 		void setShip(int row, int col) {
 			board[row][col] = NO_GUESS_SHIP;
 		}

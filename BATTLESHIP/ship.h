@@ -10,11 +10,11 @@ class Ship {
 
 	public:
 		Ship(string pName, int pSize);
+
 		void setPosition(int(pPosition)[MAX_COORDINATES_ROW][MAX_COORDINATES_COL]) {
 			for (int row = 0; row < MAX_COORDINATES_ROW; row++) {
 				for (int col = 0; col < MAX_COORDINATES_COL; col++) {
 					position[row][col] = pPosition[row][col];
-					cout << position[row][col];
 				}
 				cout << "\n";
 			}
