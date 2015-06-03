@@ -26,7 +26,7 @@ public:
     bool mapInput(string inputCoordinates, int &returnRow, int &returnCol);
     bool withinBounds(int value);
     bool acceptableInput(string row, int col);
-    void fillInCoordinates(int(&shipCoordinates)[MAX_COORDINATES_ROW][MAX_COORDINATES_COL], int &arraySize, int fixedAxis, int changeAxis1, int changeAxis2);
+    void fillInCoordinates(int(&shipCoordinates)[MAX_COORDINATES_ROW][MAX_COORDINATES_COL], int &arraySize, int fixedAxis, int changeAxis1, int changeAxis2, bool horizontal);
     bool shipAlreadyExists(Board &waterboardOne, int(&shipCoordinates)[MAX_COORDINATES_ROW][MAX_COORDINATES_COL], int arraySize);
     void playerShipPlacement(Board &waterboard, int(&shipCoordinates)[MAX_COORDINATES_ROW][MAX_COORDINATES_COL], Ship shipArray[5], string player);
     bool takeTurnsFiring(Board &ownWaterboard, Board &enemyWaterboard, Board &targetboard, Ship enemyShips[5], string player);

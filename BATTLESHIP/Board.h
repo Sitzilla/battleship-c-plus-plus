@@ -16,8 +16,8 @@ class Board {
     public:
         Board();
         bool hasShip(int row, int col);
-        bool alreadyFired(int row, int col);
         void setShip(int row, int col);
+        bool alreadyFired(int row, int col);
         void drawBoard();
         void setStatus(int row, int col, Status status);
         int getShipsRemaining();

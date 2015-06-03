@@ -228,11 +228,11 @@ bool Battleship::parseInputCoordinates(int(&shipCoordinates)[MAX_COORDINATES_ROW
 
     // If placing the ship horizontally
     if (row1 == row2) {
-        fillInCoordinates(shipCoordinates, arraySize, row1, col1, col2);
+        fillInCoordinates(shipCoordinates, arraySize, row1, col1, col2, true);
     }
     // Else placing the ship vertically
     else if (col1 == col2) {
-        fillInCoordinates(shipCoordinates, arraySize, col1, row1, row2);
+        fillInCoordinates(shipCoordinates, arraySize, col1, row1, row2, false);
     }
     // Return false if ship is not aligned either horizontally or vertically
     else { 
@@ -248,7 +248,7 @@ bool Battleship::parseInputCoordinates(int(&shipCoordinates)[MAX_COORDINATES_ROW
 }
 
 // Fills in the coordinates between two endpoints
-void Battleship::fillInCoordinates(int(&shipCoordinates)[MAX_COORDINATES_ROW][MAX_COORDINATES_COL], int &arraySize, int fixedAxis, int changeAxis1, int changeAxis2) {
+void Battleship::fillInCoordinates(int(&shipCoordinates)[MAX_COORDINATES_ROW][MAX_COORDINATES_COL], int &arraySize, int fixedAxis, int changeAxis1, int changeAxis2, bool horizontal) {
 
     // if changeAxis1 is larger than changeAxis2 then switch their values
     if (changeAxis1 > changeAxis2) {
@@ -262,8 +262,16 @@ void Battleship::fillInCoordinates(int(&shipCoordinates)[MAX_COORDINATES_ROW][MA
 
     // add in between values to array
     while (counter < changeAxis2) {
-        shipCoordinates[index][0] = fixedAxis;
-        shipCoordinates[index][1] = counter;
+
+        if (horizontal) {
+            shipCoordinates[index][0] = fixedAxis;
+            shipCoordinates[index][1] = counter;
+        }
+        else {
+            shipCoordinates[index][0] = counter;
+            shipCoordinates[index][1] = fixedAxis;
+        }
+
         index++;
         counter++;
         arraySize++;
